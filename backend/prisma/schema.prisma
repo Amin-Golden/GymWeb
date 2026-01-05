@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id            BigInt    @id @default(autoincrement()) @db.BigInt
+  fname         String    @db.VarChar(50)
+  lname         String?   @db.VarChar(50)
+  dob           DateTime  @db.Date
+  isMale        Boolean   @map("is_male")
+  email         String?   @db.VarChar(50)
+  phoneNumber   String    @map("phone_number") @db.VarChar(13)
+  socialNumber  String    @map("social_number") @db.VarChar(10)
+  imageData     Bytes?    @map("image_data")
+  description   String?
+  locker        Int?
+  weight        Float?
+  height        Float?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  memberships      Membership[]
+  payments         Payment[]
+  gymSessions      GymSession[]
+  faceEmbeddings   FaceEmbedding?
+  fingerprintFeatures FingerprintFeature[]
+  attendance       Attendance[]
+  accessLogs       AccessLog[]
+
+  @@map("clients")
+}
+
+model Package {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  packageName String    @map("package_name")
+  imagePath   String?   @map("image_path")
+  duration    String
+  price       Int
+  days        Int
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  instructors  Instructor[]
+  memberships  Membership[]
+
+  @@map("packages")
+}
+
+model Instructor {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  packageId   BigInt    @map("package_id") @db.BigInt
+  fname       String    @db.VarChar(50)
+  lname       String?   @db.VarChar(50)
+  dob         DateTime  @db.Date
+  isMale      Boolean   @map("is_male")
+  salary      Float
+  email       String?   @db.VarChar(50)
+  title       String
+  description String?
+  phoneNumber String    @map("phone_number") @db.VarChar(13)
+  imagePath   String?   @map("image_path")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  package     Package   @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  memberships Membership[]
+  sessions    Session[]
+
+  @@map("instructors")
+}
+
+model Membership {
+  id            BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId      BigInt    @map("client_id") @db.BigInt
+  packageId     BigInt    @map("package_id") @db.BigInt
+  instructorId  BigInt    @map("instructor_id") @db.BigInt
+  status        String
+  startDate     DateTime  @map("start_date") @db.Date
+  endDate       DateTime  @map("end_date") @db.Date
+  paymentDate   DateTime  @map("payment_date") @db.Timestamp(6)
+  isPaid        Boolean   @map("is_paid")
+  description   String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  remainSessions Int      @default(0) @map("RemainSessions")
+
+  client     Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  package    Package    @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  sessions   Session[]
+
+  @@map("memberships")
+}
+
+model Payment {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId    BigInt    @map("client_id") @db.BigInt
+  paymentType String    @map("payment_type") @db.VarChar(10)
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Admin {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  adminID     String    @unique @map("adminID") @db.VarChar(50)
+  fname       String    @db.VarChar(50)
+  lname       String    @db.VarChar(50)
+  dob         DateTime  @db.Date
+  isMale      Boolean   @map("is_male")
+  password    String
+  phoneNumber String    @map("phone_number") @db.VarChar(13)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("admins")
+}
+
+model Session {
+  id             BigInt    @id @default(autoincrement()) @db.BigInt
+  instructorId   BigInt    @map("instructor_id") @db.BigInt
+  membershipId   BigInt    @map("membership_id") @db.BigInt
+  destinationDate DateTime @map("destination_date") @db.Date
+  isAttended     Boolean   @map("is_attended")
+  description    String?
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  attendance Attendance[]
+
+  @@map("sessions")
+}
+
+model Attendance {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId    BigInt    @map("client_id") @db.BigInt
+  sessionId   BigInt    @map("session_id") @db.BigInt
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("attendance")
+}
+
+model GymSession {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId     BigInt    @map("client_id") @db.BigInt
+  entranceTime DateTime  @map("entrance_time") @db.Timestamp(6)
+  exitTime     DateTime? @map("exit_time") @db.Timestamp(6)
+  lockerNumber Int?      @map("locker_number")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("gym_sessions")
+}
+
+model FaceEmbedding {
+  id         BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId   BigInt    @unique @map("client_id") @db.BigInt
+  embedding  Bytes
+  confidence Float?
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("face_embeddings")
+}
+
+model AccessLog {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId     BigInt?   @map("client_id") @db.BigInt
+  accessGranted Boolean  @map("access_granted")
+  confidence   Float?
+  timestamp    DateTime  @default(now()) @db.Timestamp(6)
+
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@map("access_logs")
+}
+
+model FingerprintFeature {
+  id           BigInt    @id @default(autoincrement()) @db.BigInt
+  clientId     BigInt    @map("client_id") @db.BigInt
+  fingerIndex  Int       @map("finger_index")
+  sampleNumber Int       @map("sample_number")
+  descriptors  Bytes
+  keypointsData Bytes?   @map("keypoints_data")
+  numFeatures  Int       @map("num_features")
+  confidence   Float?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, fingerIndex, sampleNumber], name: "unique_client_finger_sample")
+  @@map("fingerprint_features")
+}
+
