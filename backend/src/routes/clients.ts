@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { prisma } from '../server';
+import { serializeBigInts } from '../utils/bigint-serializer';
 
 const router = express.Router();
 
@@ -21,19 +22,7 @@ router.get('/', authenticateToken, async (req, res) => {
     });
 
     // Convert BigInt to string for JSON serialization
-    const clientsWithStringIds = clients.map(client => ({
-      ...client,
-      id: client.id.toString(),
-      memberships: client.memberships.map(m => ({
-        ...m,
-        id: m.id.toString(),
-        clientId: m.clientId.toString(),
-        packageId: m.packageId.toString(),
-        instructorId: m.instructorId.toString()
-      }))
-    }));
-
-    res.json(clientsWithStringIds);
+    res.json(serializeBigInts(clients));
   } catch (error: any) {
     console.error('Error fetching clients:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -68,27 +57,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    res.json({
-      ...client,
-      id: client.id.toString(),
-      memberships: client.memberships.map(m => ({
-        ...m,
-        id: m.id.toString(),
-        clientId: m.clientId.toString(),
-        packageId: m.packageId.toString(),
-        instructorId: m.instructorId.toString()
-      })),
-      payments: client.payments.map(p => ({
-        ...p,
-        id: p.id.toString(),
-        clientId: p.clientId.toString()
-      })),
-      gymSessions: client.gymSessions.map(gs => ({
-        ...gs,
-        id: gs.id.toString(),
-        clientId: gs.clientId.toString()
-      }))
-    });
+    res.json(serializeBigInts(client));
   } catch (error: any) {
     console.error('Error fetching client:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

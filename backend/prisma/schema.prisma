@@ -91,7 +91,7 @@ model Membership {
   description   String?
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  remainSessions Int      @default(0) @map("RemainSessions")
+  remainSessions Int      @default(0) @map("remainsessions")
 
   client     Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
   package    Package    @relation(fields: [packageId], references: [id], onDelete: Cascade)
@@ -116,7 +116,7 @@ model Payment {
 
 model Admin {
   id          BigInt    @id @default(autoincrement()) @db.BigInt
-  adminID     String    @unique @map("adminID") @db.VarChar(50)
+  adminID     String    @unique @map("adminid") @db.VarChar(50)
   fname       String    @db.VarChar(50)
   lname       String    @db.VarChar(50)
   dob         DateTime  @db.Date

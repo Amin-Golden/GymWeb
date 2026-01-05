@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { prisma } from '../server';
+import { serializeBigInts } from '../utils/bigint-serializer';
 
 const router = express.Router();
 
@@ -26,26 +27,8 @@ router.get('/', authenticateToken, async (req, res) => {
       }
     });
 
-    const sessionsWithStringIds = sessions.map(session => ({
-      ...session,
-      id: session.id.toString(),
-      instructorId: session.instructorId.toString(),
-      membershipId: session.membershipId.toString(),
-      instructor: {
-        ...session.instructor,
-        id: session.instructor.id.toString(),
-        packageId: session.instructor.packageId.toString()
-      },
-      membership: {
-        ...session.membership,
-        id: session.membership.id.toString(),
-        clientId: session.membership.clientId.toString(),
-        packageId: session.membership.packageId.toString(),
-        instructorId: session.membership.instructorId.toString()
-      }
-    }));
-
-    res.json(sessionsWithStringIds);
+    // Convert BigInt to string for JSON serialization
+    res.json(serializeBigInts(sessions));
   } catch (error: any) {
     console.error('Error fetching sessions:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -78,30 +61,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Session not found' });
     }
 
-    res.json({
-      ...session,
-      id: session.id.toString(),
-      instructorId: session.instructorId.toString(),
-      membershipId: session.membershipId.toString(),
-      instructor: {
-        ...session.instructor,
-        id: session.instructor.id.toString(),
-        packageId: session.instructor.packageId.toString()
-      },
-      membership: {
-        ...session.membership,
-        id: session.membership.id.toString(),
-        clientId: session.membership.clientId.toString(),
-        packageId: session.membership.packageId.toString(),
-        instructorId: session.membership.instructorId.toString()
-      },
-      attendance: session.attendance.map(a => ({
-        ...a,
-        id: a.id.toString(),
-        clientId: a.clientId.toString(),
-        sessionId: a.sessionId.toString()
-      }))
-    });
+    res.json(serializeBigInts(session));
   } catch (error: any) {
     console.error('Error fetching session:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -140,24 +100,7 @@ router.post('/', authenticateToken, [
       }
     });
 
-    res.status(201).json({
-      ...session,
-      id: session.id.toString(),
-      instructorId: session.instructorId.toString(),
-      membershipId: session.membershipId.toString(),
-      instructor: {
-        ...session.instructor,
-        id: session.instructor.id.toString(),
-        packageId: session.instructor.packageId.toString()
-      },
-      membership: {
-        ...session.membership,
-        id: session.membership.id.toString(),
-        clientId: session.membership.clientId.toString(),
-        packageId: session.membership.packageId.toString(),
-        instructorId: session.membership.instructorId.toString()
-      }
-    });
+    res.status(201).json(serializeBigInts(session));
   } catch (error: any) {
     console.error('Error creating session:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -189,24 +132,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       }
     });
 
-    res.json({
-      ...session,
-      id: session.id.toString(),
-      instructorId: session.instructorId.toString(),
-      membershipId: session.membershipId.toString(),
-      instructor: {
-        ...session.instructor,
-        id: session.instructor.id.toString(),
-        packageId: session.instructor.packageId.toString()
-      },
-      membership: {
-        ...session.membership,
-        id: session.membership.id.toString(),
-        clientId: session.membership.clientId.toString(),
-        packageId: session.membership.packageId.toString(),
-        instructorId: session.membership.instructorId.toString()
-      }
-    });
+    res.json(serializeBigInts(session));
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'Session not found' });

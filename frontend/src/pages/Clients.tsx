@@ -29,9 +29,13 @@ interface Client {
   lname: string;
   email: string;
   phoneNumber: string;
-  dob: string;
+  socialNumber?: string;
+  dob: string | Date;
   isMale: boolean;
   locker: number | null;
+  weight?: number | null;
+  height?: number | null;
+  description?: string;
 }
 
 const Clients: React.FC = () => {
@@ -72,18 +76,32 @@ const Clients: React.FC = () => {
   const handleOpen = (client?: Client) => {
     if (client) {
       setEditingClient(client);
+      
+      // Handle dob - it could be a string or Date object
+      let dobString = '';
+      if (client.dob) {
+        if (typeof client.dob === 'string') {
+          dobString = client.dob.split('T')[0];
+        } else if (client.dob && typeof client.dob === 'object' && 'toISOString' in client.dob) {
+          dobString = (client.dob as Date).toISOString().split('T')[0];
+        } else {
+          // If it's already in YYYY-MM-DD format
+          dobString = String(client.dob).split('T')[0];
+        }
+      }
+      
       setFormData({
         fname: client.fname,
         lname: client.lname || '',
         email: client.email || '',
         phoneNumber: client.phoneNumber,
-        socialNumber: '',
-        dob: client.dob ? client.dob.split('T')[0] : '',
+        socialNumber: client.socialNumber || '',
+        dob: dobString,
         isMale: client.isMale,
         locker: client.locker?.toString() || '',
-        weight: '',
-        height: '',
-        description: '',
+        weight: client.weight?.toString() || '',
+        height: client.height?.toString() || '',
+        description: client.description || '',
       });
     } else {
       setEditingClient(null);

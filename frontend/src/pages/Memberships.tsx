@@ -47,10 +47,12 @@ interface Membership {
   packageId: string;
   instructorId: string;
   status: string;
-  startDate: string;
-  endDate: string;
+  startDate: string | Date;
+  endDate: string | Date;
+  paymentDate?: string | Date;
   isPaid: boolean;
   remainSessions: number;
+  description?: string;
   client: Client;
   package: Package;
   instructor: Instructor;
@@ -104,17 +106,29 @@ const Memberships: React.FC = () => {
   const handleOpen = (membership?: Membership) => {
     if (membership) {
       setEditingMembership(membership);
+      // Helper function to safely convert date to YYYY-MM-DD format
+      const formatDate = (date: any): string => {
+        if (!date) return '';
+        if (typeof date === 'string') {
+          return date.split('T')[0];
+        }
+        if (date instanceof Date) {
+          return date.toISOString().split('T')[0];
+        }
+        return String(date).split('T')[0];
+      };
+
       setFormData({
         clientId: membership.clientId,
         packageId: membership.packageId,
         instructorId: membership.instructorId,
         status: membership.status,
-        startDate: membership.startDate.split('T')[0],
-        endDate: membership.endDate.split('T')[0],
-        paymentDate: '',
+        startDate: formatDate(membership.startDate),
+        endDate: formatDate(membership.endDate),
+        paymentDate: formatDate(membership.paymentDate) || new Date().toISOString().split('T')[0],
         isPaid: membership.isPaid,
         remainSessions: membership.remainSessions.toString(),
-        description: '',
+        description: membership.description || '',
       });
     } else {
       setEditingMembership(null);

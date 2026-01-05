@@ -86,10 +86,22 @@ const Sessions: React.FC = () => {
   const handleOpen = (session?: Session) => {
     if (session) {
       setEditingSession(session);
+      // Helper function to safely convert date to YYYY-MM-DD format
+      const formatDate = (date: any): string => {
+        if (!date) return '';
+        if (typeof date === 'string') {
+          return date.split('T')[0];
+        }
+        if (date instanceof Date) {
+          return date.toISOString().split('T')[0];
+        }
+        return String(date).split('T')[0];
+      };
+
       setFormData({
         instructorId: session.instructorId,
         membershipId: session.membershipId,
-        destinationDate: session.destinationDate.split('T')[0],
+        destinationDate: formatDate(session.destinationDate),
         isAttended: session.isAttended,
         description: session.description || '',
       });

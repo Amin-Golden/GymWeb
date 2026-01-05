@@ -35,7 +35,7 @@ router.post('/login', [
 
     const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
     const token = jwt.sign(
-      { adminId: admin.adminID, id: admin.id },
+      { adminId: admin.adminID, id: admin.id.toString() },
       jwtSecret,
       { expiresIn: '7d' }
     );
@@ -43,7 +43,7 @@ router.post('/login', [
     res.json({
       token,
       admin: {
-        id: admin.id,
+        id: admin.id.toString(),
         adminID: admin.adminID,
         fname: admin.fname,
         lname: admin.lname,
@@ -85,7 +85,10 @@ router.get('/me', async (req, res) => {
       return res.status(404).json({ message: 'Admin not found' });
     }
 
-    res.json(admin);
+    res.json({
+      ...admin,
+      id: admin.id.toString()
+    });
   } catch (error: any) {
     res.status(401).json({ message: 'Invalid token' });
   }

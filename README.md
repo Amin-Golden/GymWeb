@@ -118,7 +118,7 @@ You'll need to create an admin account in the database. You can do this by runni
 
 ```sql
 INSERT INTO public.admins (adminID, fname, lname, dob, is_male, password, phone_number)
-VALUES ('admin', 'Admin', 'User', '1990-01-01', true, '$2a$10$YourHashedPasswordHere', '1234567890');
+VALUES ('amin', 'amin', 'User', '1990-01-01', true, '$2a$12$u9nPMD.4NM/J8ayFnFa4GenkRZhZXQIe6mV.wxTu59Jywi6fHMOdi', '1234567890');
 ```
 
 Or use bcrypt to hash a password and insert it. For testing, you can use a simple script or create an admin through a database tool.
